@@ -610,3 +610,130 @@ graph TD
 
 ```
 
+## Data Synchronization
+
+```
+┌──────────────┐
+│  Extension   │
+│  Side Panel  │
+└──────┬───────┘
+       │
+       │ Check cookie
+       ▼
+┌──────────────┐
+│ browser.     │
+│ cookies API  │
+└──────┬───────┘
+       │
+   ┌───┴───┐
+   │       │
+   ▼       ▼
+┌─────┐ ┌─────┐
+│Found│ │None │
+└──┬──┘ └──┬──┘
+   │       │
+   │       ▼
+   │   ┌──────────────┐
+   │   │ Redirect to  │
+   │   │ Dashboard    │
+   │   │ (Sign In)    │
+   │   └──────────────┘
+   │
+   ▼
+┌──────────────┐
+│ Use Token    │
+│ for API      │
+└──────────────┘
+
+```
+
+## Shared State:
+- User Profile: Both apps fetch from /user/me
+- Reference Photo: Dashboard uploads, extension uses for generations
+- Wardrobe: Both can view, extension shows real-time updates
+- Authentication: Shared cookie, single source of truth
+
+## Key Design Decisions
+
+### Why Redis Pub/Sub for SSE ? 
+```
+sequenceDiagram
+    participant User
+    participant Dashboard
+    participant ReactQuery
+    participant Backend
+    participant S3
+
+    User->>Dashboard: Upload Reference Photo
+    Dashboard->>Backend: POST /reference-photo/upload
+    Backend->>S3: Upload image
+    Backend->>Backend: Create DB records
+    Backend-->>Dashboard: Success
+    Dashboard->>ReactQuery: Invalidate cache
+    ReactQuery->>Backend: Refetch /reference-photo/active
+    Backend-->>ReactQuery: Updated data
+    ReactQuery->>Dashboard: Update UI
+
+```
+
+## Why optimistic UI ?
+```
+graph TB
+    Start[User Signs Up] --> Upload[Upload Reference Photo]
+    Upload --> Dashboard[Dashboard Creates Avatar]
+    Dashboard --> Browse[User Browses Myntra]
+    Browse --> Extract[Extension Extracts Product]
+    Extract --> TryOn[User Clicks Try On]
+    TryOn --> Backend[Backend Creates Generation]
+    Backend --> Fashnai[Fashnai Processes]
+    Fashnai --> Webhook[Webhook Updates DB]
+    Webhook --> SSE[SSE Notifies Extension]
+    SSE --> Complete[Generation Complete]
+    Complete --> Wardrobe[User Views Wardrobe]
+```
+
+## Deployment Architecture
+
+```
+┌──────────────┐         ┌──────────────┐
+│  Extension   │         │  Dashboard   │
+│              │         │              │
+│ - Real-time  │         │ - On-demand  │
+│   updates    │         │   fetching   │
+│ - Optimistic │         │ - Cached     │
+│   UI         │         │   queries    │
+└──────┬───────┘         └──────┬───────┘
+       │                        │
+       └──────────┬──────────────┘
+                  │
+                  ▼
+         ┌──────────────┐
+         │   Backend    │
+         │   API        │
+         │              │
+         │ - Single     │
+         │   source of  │
+         │   truth      │
+         └──────────────┘
+
+```
+
+### Backend
+- Runs on Amazon Lightsail (2-core instance)
+- Managed by PM2 (process manager)
+- Can run multiple instances for load distribution
+- PostgreSQL database (separate instance or managed service)
+- Redis for caching and pub/sub
+
+### Extension
+- Built with WXT, outputs Chrome extension package
+- Published to Chrome Web Store
+- Auto-updates when new version is published
+
+### Dashboard
+- React app, deployed to Vercel.
+
+All three components are independent but work together through the shared backend.
+
+This architecture handles the async nature of AI processing while giving users a responsive experience. The event-driven design means we can scale the webhook processing independently from the real-time delivery, and the optimistic UI keeps things feeling fast even when backend operations take time
+
