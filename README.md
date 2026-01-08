@@ -3,6 +3,12 @@
 ## Overview
 LYO is a virtual fitting room that lets users try on clothes in their browser before buying. It works as a Chrome extension on Myntra, a React dashboard for managing avatars, and a NestJS backend that handles the heavy lifting.
 
+
+
+https://github.com/user-attachments/assets/da39c46e-1dc9-41ef-bc16-8ba7a8e01bc0
+
+
+
 ```
 ┌─────────────┐         ┌─────────────┐         ┌─────────────┐
 │   Chrome    │         │   NestJS    │         │   React     │
