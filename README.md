@@ -159,7 +159,8 @@ User Clicks "Try On"
 
 ## Request Flow Architecture
 
-```┌─────────────────────────────────────────┐
+```
+┌─────────────────────────────────────────┐
 │           App Module (Root)              │
 │  - Global Config                         │
 │  - CORS, Validation, Helmet              │
@@ -195,7 +196,8 @@ User Clicks "Try On"
 
 ## Authentication Flow
 
-```
+```mermaid
+
 sequenceDiagram
     participant User
     participant Dashboard
@@ -224,7 +226,8 @@ sequenceDiagram
 
 ## Try-On Generation Flow
 
-```
+```mermaid
+
 sequenceDiagram
     participant Extension
     participant Backend
@@ -251,6 +254,7 @@ sequenceDiagram
     Redis-->>Backend: Event received
     Backend-->>Extension: SSE event (generation complete)
     Extension->>Extension: Update UI
+    
 ```
 
 ## Caching Strategy 
@@ -313,7 +317,8 @@ sequenceDiagram
 
 ## Storage Architecture
 
-```
+```mermaid
+
 sequenceDiagram
     participant User
     participant Dashboard
@@ -336,6 +341,7 @@ sequenceDiagram
     Extension->>Backend: API call (with cookie)
     Backend->>Backend: Validate JWT
     Backend-->>Extension: Response
+    
 
 ```
 
@@ -350,7 +356,7 @@ We generate presigned URLs (1 hour expiry) so clients can access images directly
 
 Built with WXT framework, which makes Chrome extension development way easier. It's basically React + TypeScript with some extension-specific helpers.
 
-```
+```mermaid
 sequenceDiagram
     participant Extension
     participant Backend
@@ -382,7 +388,7 @@ sequenceDiagram
 
 ## Content Script Flow
 
-```
+```mermaid
 graph TD
     A[User visits Myntra] --> B[Content Script Loads]
     B --> C[Extract Product Metadata]
@@ -521,7 +527,7 @@ Handles authentication flow
 
 ### Dataflow
 
-```
+```mermaid
 sequenceDiagram
     participant User
     participant Dashboard
@@ -543,7 +549,7 @@ sequenceDiagram
 
 ### System Integration
 
-```
+```mermaid
 graph TB
     Start[User Signs Up] --> Upload[Upload Reference Photo]
     Upload --> Dashboard[Dashboard Creates Avatar]
@@ -561,7 +567,7 @@ graph TB
 
 ### Authentication Integration
 
-```
+```mermaid
 graph TD
     A[User visits Myntra] --> B[Content Script Loads]
     B --> C[Extract Product Metadata]
@@ -656,7 +662,7 @@ graph TD
 ## Key Design Decisions
 
 ### Why Redis Pub/Sub for SSE ? 
-```
+```mermaid
 sequenceDiagram
     participant User
     participant Dashboard
@@ -677,7 +683,7 @@ sequenceDiagram
 ```
 
 ## Why optimistic UI ?
-```
+```mermaid
 graph TB
     Start[User Signs Up] --> Upload[Upload Reference Photo]
     Upload --> Dashboard[Dashboard Creates Avatar]
